@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+		<WarningLevel>3</WarningLevel>
+		<NoWarn>1573,1591,IDE0063,IDE0066</NoWarn>
+		<RootNamespace>net.vieapps.Services.SMS</RootNamespace>
+		<AssemblyName>VIEApps.Services.SMS</AssemblyName>
+		<AssemblyTitle>VIEApps NGX SMS</AssemblyTitle>
+		<Authors>VIEApps.net</Authors>
+		<Company>VIEApps.net</Company>
+		<Product>VIEApps NGX</Product>
+		<Copyright>© 2021 VIEApps.net</Copyright>
+		<AssemblyVersion>10.4$(ReleaseVersion)</AssemblyVersion>
+		<FileVersion>10.4$(ReleaseVersion)</FileVersion>
+		<InformationalVersion>10.4.$([System.DateTime]::Now.Year).$([System.DateTime]::Now.Month).$([System.DateTime]::Now.Day)@$(TargetFramework)#$(ReleaseRevision)</InformationalVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove=".DS_Store" />
+		<None Remove=".gitattributes" />
+		<None Remove=".gitignore" />
+		<None Remove="LICENSE.md" />
+		<None Remove="README.md" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="VIEApps.Services.Base" Version="10.4.2107.2" />
+	</ItemGroup>
+
+</Project>
