@@ -50,6 +50,7 @@ namespace net.vieapps.Services.SMS
 					? this.Senders[@default]
 					: this.Senders.Values.FirstOrDefault();
 			}
+			this.Syncable = false;
 			base.Start(args, false, _ =>
 			{
 				next?.Invoke(this);
