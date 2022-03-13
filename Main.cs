@@ -139,23 +139,20 @@ namespace net.vieapps.Services.SMS
 			var requestJson = payload.ToJson();
 			var requestHeaders = new Dictionary<string, string>(sender.Headers, StringComparer.OrdinalIgnoreCase)
 			{
-				["Content-Type"] = "application/json"
+				["Content-Type"] = "application/json; charset=utf-8"
 			};
 
 			using (var httpResponse = await sender.Uri.SendHttpRequestAsync(sender.Method, requestHeaders, requestJson.ToString(Newtonsoft.Json.Formatting.None), this.Timeout, cancellationToken).ConfigureAwait(false))
 			{
-				using (var stream = httpResponse.GetResponseStream())
+				var response = await httpResponse.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+				var responseJson = (string.IsNullOrWhiteSpace(response) ? "{\"status\":\"00\"}" : response).ToJson();
+				if (!"00".IsEquals(responseJson.Get<string>("status")))
 				{
-					var response = await stream.ReadAllAsync(cancellationToken).ConfigureAwait(false);
-					var responseJson = (string.IsNullOrWhiteSpace(response) ? "{\"status\":\"00\"}" : response).ToJson();
-					if (!"00".IsEquals(responseJson.Get<string>("status")))
-					{
-						await this.WriteLogsAsync(requestInfo.CorrelationID, requestInfo.GetDeveloperID(), requestInfo.GetAppID(), $"Error occurred while sending a SMS message via VnPay (sender: {name})\r\n- Request:\r\n\t- Headers:\r\n\t\t{requestHeaders.ToString("\r\n\t\t", kvp => $"{kvp.Key}: {kvp.Value}")}\r\n\t- Boby: {requestJson.ToString(this.JsonFormat)}\r\n- Response: {responseJson.ToString(this.JsonFormat)}", null, this.ServiceName, "VnPay", LogLevel.Error).ConfigureAwait(false);
-						throw new InformationInvalidException(responseJson.Get<string>("description"));
-					}
-					else if (this.IsDebugLogEnabled)
-						await this.WriteLogsAsync(requestInfo.CorrelationID, requestInfo.GetDeveloperID(), requestInfo.GetAppID(), $"Send a SMS message via VnPay successful (sender: {name})\r\n- Request:\r\n\t- Headers:\r\n\t\t{requestHeaders.ToString("\r\n\t\t", kvp => $"{kvp.Key}: {kvp.Value}")}\r\n\t- Boby: {requestJson.ToString(this.JsonFormat)}\r\n- Response: {responseJson.ToString(this.JsonFormat)}", null, this.ServiceName, "VnPay", LogLevel.Debug).ConfigureAwait(false);
+					await this.WriteLogsAsync(requestInfo.CorrelationID, requestInfo.GetDeveloperID(), requestInfo.GetAppID(), $"Error occurred while sending a SMS message via VnPay (sender: {name})\r\n- Request:\r\n\t- Headers:\r\n\t\t{requestHeaders.ToString("\r\n\t\t", kvp => $"{kvp.Key}: {kvp.Value}")}\r\n\t- Boby: {requestJson.ToString(this.JsonFormat)}\r\n- Response: {responseJson.ToString(this.JsonFormat)}", null, this.ServiceName, "VnPay", LogLevel.Error).ConfigureAwait(false);
+					throw new InformationInvalidException(responseJson.Get<string>("description"));
 				}
+				else if (this.IsDebugLogEnabled)
+					await this.WriteLogsAsync(requestInfo.CorrelationID, requestInfo.GetDeveloperID(), requestInfo.GetAppID(), $"Send a SMS message via VnPay successful (sender: {name})\r\n- Request:\r\n\t- Headers:\r\n\t\t{requestHeaders.ToString("\r\n\t\t", kvp => $"{kvp.Key}: {kvp.Value}")}\r\n\t- Boby: {requestJson.ToString(this.JsonFormat)}\r\n- Response: {responseJson.ToString(this.JsonFormat)}", null, this.ServiceName, "VnPay", LogLevel.Debug).ConfigureAwait(false);
 			}
 
 			return new JObject
@@ -185,23 +182,20 @@ namespace net.vieapps.Services.SMS
 			var requestBody = $"Body={message.ConvertUnicodeToANSI().UrlEncode()}&From={twilioPhoneNumber.UrlEncode()}&To={phone.UrlEncode()}";
 			var requestHeaders = new Dictionary<string, string>(sender.Headers, StringComparer.OrdinalIgnoreCase)
 			{
-				["Content-Type"] = "application/x-www-form-urlencoded"
+				["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8"
 			};
 
 			using (var httpResponse = await sender.Uri.SendHttpRequestAsync(sender.Method, requestHeaders, requestBody, this.Timeout, cancellationToken).ConfigureAwait(false))
 			{
-				using (var stream = httpResponse.GetResponseStream())
+				var response = await httpResponse.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+				var responseJson = (string.IsNullOrWhiteSpace(response) ? "{\"code\":0}" : response).ToJson();
+				if (responseJson.Get<int>("code") > 0)
 				{
-					var response = await stream.ReadAllAsync(cancellationToken).ConfigureAwait(false);
-					var responseJson = (string.IsNullOrWhiteSpace(response) ? "{\"code\":0}" : response).ToJson();
-					if (responseJson.Get<int>("code") > 0)
-					{
-						await this.WriteLogsAsync(requestInfo.CorrelationID, requestInfo.GetDeveloperID(), requestInfo.GetAppID(), $"Error occurred while sending a SMS message via Twilio (sender: {name})\r\n- Request:\r\n\t- Headers:\r\n\t\t{requestHeaders.ToString("\r\n\t\t", kvp => $"{kvp.Key}: {kvp.Value}")}\r\n\t- Boby: {requestBody}\r\n- Response: {responseJson.ToString(this.JsonFormat)}", null, this.ServiceName, "Twilio", LogLevel.Error).ConfigureAwait(false);
-						throw new InformationInvalidException(responseJson.Get<string>("message"));
-					}
-					else if (this.IsDebugLogEnabled)
-						await this.WriteLogsAsync(requestInfo.CorrelationID, requestInfo.GetDeveloperID(), requestInfo.GetAppID(), $"Send a SMS message via Twilio successful (sender: {name})\r\n- Request:\r\n\t- Headers:\r\n\t\t{requestHeaders.ToString("\r\n\t\t", kvp => $"{kvp.Key}: {kvp.Value}")}\r\n\t- Boby: {requestBody}\r\n- Response: {responseJson.ToString(this.JsonFormat)}", null, this.ServiceName, "Twilio", LogLevel.Debug).ConfigureAwait(false);
+					await this.WriteLogsAsync(requestInfo.CorrelationID, requestInfo.GetDeveloperID(), requestInfo.GetAppID(), $"Error occurred while sending a SMS message via Twilio (sender: {name})\r\n- Request:\r\n\t- Headers:\r\n\t\t{requestHeaders.ToString("\r\n\t\t", kvp => $"{kvp.Key}: {kvp.Value}")}\r\n\t- Boby: {requestBody}\r\n- Response: {responseJson.ToString(this.JsonFormat)}", null, this.ServiceName, "Twilio", LogLevel.Error).ConfigureAwait(false);
+					throw new InformationInvalidException(responseJson.Get<string>("message"));
 				}
+				else if (this.IsDebugLogEnabled)
+					await this.WriteLogsAsync(requestInfo.CorrelationID, requestInfo.GetDeveloperID(), requestInfo.GetAppID(), $"Send a SMS message via Twilio successful (sender: {name})\r\n- Request:\r\n\t- Headers:\r\n\t\t{requestHeaders.ToString("\r\n\t\t", kvp => $"{kvp.Key}: {kvp.Value}")}\r\n\t- Boby: {requestBody}\r\n- Response: {responseJson.ToString(this.JsonFormat)}", null, this.ServiceName, "Twilio", LogLevel.Debug).ConfigureAwait(false);
 			}
 
 			return new JObject
